@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulir Pendataan Sponsorship Aresta</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f5fa;color:#17243a}
+header{background:linear-gradient(110deg,#20477f,#3478d0);color:white;padding:25px max(20px,calc((100% - 970px)/2))}
+header h1{font-size:30px;margin:0 0 7px}
+header p{margin:0;font-size:14px}
+main{max-width:970px;margin:22px auto;padding:0 16px}
+.card{background:white;border:1px solid #dbe3ef;border-radius:16px;padding:22px;box-shadow:0 7px 22px #243b5308}
+h2{font-size:20px;margin:0 0 7px}
+.sub{font-size:13px;color:#68778d;margin:0 0 18px}
+label{display:block;font-size:13px;font-weight:bold;margin-bottom:15px}
+input,select,textarea{width:100%;margin-top:7px;padding:11px 12px;border:1px solid #ccd5e1;border-radius:9px;font:14px Arial;background:#fff;color:#17243a}
+textarea{min-height:76px;resize:vertical}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}
+button,.link{display:inline-block;border:0;border-radius:9px;padding:12px 17px;background:#2457a7;color:#fff;font-size:14px;font-weight:bold;cursor:pointer;text-decoration:none}
+button:hover,.link:hover{opacity:.9}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.secondary{background:#e9f0fc;color:#234c89}
+.message{display:none;margin-top:15px;padding:12px;border-radius:8px;font-size:13px}
+.success{background:#e7f7ed;color:#17653c}
+.error{background:#fff0f0;color:#a51d2a}
+.note{font-size:12px;line-height:1.6;color:#68778d;margin-top:18px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}header h1{font-size:24px}.card{padding:17px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Formulir Pendataan Sponsorship ARESTA</h1>
+  <p>Masukkan data sponsor dengan benar dan valid.</p>
+</header>
+
+<main>
+<section class="card">
+  <h2>Tambah Data Baru</h2>
+  <p class="sub">Lengkapi formulir di bawah ini. Nama lengkap wajib diisi.</p>
+
+  <form id="sponsorForm">
+    <label>Nama lengkap *
+      <input name="nama" required maxlength="120" placeholder="Masukkan nama lengkap">
+    </label>
+
+    <div class="grid">
+      <label>Jabatan
+        <input name="jabatan" maxlength="100" placeholder="Contoh: Manager">
+      </label>
+      <label>Jenis kelamin
+        <select name="jk">
+          <option value="">-- Pilih --</option>
+          <option>Laki-laki</option>
+          <option>Perempuan</option>
+          <option>Tidak ingin menyebutkan</option>
+        </select>
+      </label>
+      <label>Nomor telepon
+        <input name="telepon" type="tel" maxlength="30" placeholder="Contoh: 08xxxxxxxxxx">
+      </label>
+      <label>Email
+        <input name="email" type="email" maxlength="120" placeholder="nama@gmail.com">
+      </label>
+    </div>
+
+    <label>Alamat Perusahaan
+      <textarea name="alamat" maxlength="500" placeholder="Jl. / Lantai / No."></textarea>
+    </label>
+
+    <label>Total Biaya yang Disalurkan (Rp)
+      <input name="dana" type="number" min="0" step="1" placeholder="Contoh: 5000000">
+    </label>
+
+    <label>Nama Perusahaan
+      <input name="perusahaan" maxlength="150" placeholder="Contoh: PT. Nama Perusahaan">
+    </label>
+
+    <label>Catatan
+      <textarea name="catatan" maxlength="1000" placeholder="Informasi tambahan (opsional)"></textarea>
+    </label>
+
+    <div class="actions">
+      <button type="submit">Simpan Data</button>
+      <button type="reset" class="secondary">Kosongkan Formulir</button>
+     
+    </div>
+
+    <div id="success" class="message success"></div>
+    <div id="error" class="message error"></div>
+  </form>
+
+  <p class="note">
+    Data disimpan pada penyimpanan browser di perangkat ini.
+    Untuk penggunaan lokal, buka kedua halaman melalui server lokal yang sama.
+    Penyimpanan ini bukan database online dan tidak otomatis menyinkronkan perangkat lain.
+  </p>
+</section>
+</main>
+
+<script>
+const STORAGE_KEY = "aresta_sponsorship_database_v1";
+const form = document.getElementById("sponsorForm");
+
+form.addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  const fd = new FormData(form);
+  const data = {
+    id: (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString()),
+    nama: String(fd.get("nama") || "").trim(),
+    jabatan: String(fd.get("jabatan") || "").trim(),
+    jk: String(fd.get("jk") || ""),
+    telepon: String(fd.get("telepon") || "").trim(),
+    email: String(fd.get("email") || "").trim(),
+    alamat: String(fd.get("alamat") || "").trim(),
+    dana: Number(fd.get("dana") || 0),
+    perusahaan: String(fd.get("perusahaan") || "").trim(),
+    catatan: String(fd.get("catatan") || "").trim(),
+    dibuat: new Date().toISOString()
+  };
+
+  try {
+    const rows = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    if (!Array.isArray(rows)) throw new Error("Format data tidak valid.");
+
+    rows.unshift(data);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+
+    document.getElementById("success").textContent =
+      "Data " + data.nama + " berhasil disimpan. Buka Database Input untuk melihat hasilnya.";
+    document.getElementById("success").style.display = "block";
+    document.getElementById("error").style.display = "none";
+    form.reset();
+  } catch (err) {
+    document.getElementById("error").textContent =
+      "Data gagal disimpan: " + err.message;
+    document.getElementById("error").style.display = "block";
+    document.getElementById("success").style.display = "none";
+  }
+});
+</script>
+</body>
+</html>
